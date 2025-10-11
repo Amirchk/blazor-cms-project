@@ -1,0 +1,12 @@
+D:\Tech projects\DotNet Projects\blazor-cms-project\src\CMSProject.Core\bin\Debug\net8.0\CMSProject.Core.deps.json
+D:\Tech projects\DotNet Projects\blazor-cms-project\src\CMSProject.Core\bin\Debug\net8.0\CMSProject.Core.dll
+D:\Tech projects\DotNet Projects\blazor-cms-project\src\CMSProject.Core\bin\Debug\net8.0\CMSProject.Core.pdb
+D:\Tech projects\DotNet Projects\blazor-cms-project\src\CMSProject.Core\obj\Debug\net8.0\CMSProject.Core.GeneratedMSBuildEditorConfig.editorconfig
+D:\Tech projects\DotNet Projects\blazor-cms-project\src\CMSProject.Core\obj\Debug\net8.0\CMSProject.Core.AssemblyInfoInputs.cache
+D:\Tech projects\DotNet Projects\blazor-cms-project\src\CMSProject.Core\obj\Debug\net8.0\CMSProject.Core.AssemblyInfo.cs
+D:\Tech projects\DotNet Projects\blazor-cms-project\src\CMSProject.Core\obj\Debug\net8.0\CMSProject.Core.csproj.CoreCompileInputs.cache
+D:\Tech projects\DotNet Projects\blazor-cms-project\src\CMSProject.Core\obj\Debug\net8.0\CMSProject.Core.sourcelink.json
+D:\Tech projects\DotNet Projects\blazor-cms-project\src\CMSProject.Core\obj\Debug\net8.0\CMSProject.Core.dll
+D:\Tech projects\DotNet Projects\blazor-cms-project\src\CMSProject.Core\obj\Debug\net8.0\refint\CMSProject.Core.dll
+D:\Tech projects\DotNet Projects\blazor-cms-project\src\CMSProject.Core\obj\Debug\net8.0\CMSProject.Core.pdb
+D:\Tech projects\DotNet Projects\blazor-cms-project\src\CMSProject.Core\obj\Debug\net8.0\ref\CMSProject.Core.dll
