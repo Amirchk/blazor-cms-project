@@ -1,0 +1,111 @@
+@page "/content/create"
+@page "/content/edit/{id:int}"
+@layout AdminLayout
+@using CMSProject.Core.Entities
+@using CMSProject.Core.Interfaces
+@inject IContentRepository ContentRepository
+@inject NavigationManager Navigation
+@inject ISnackbar Snackbar
+
+<PageTitle>@(Id.HasValue ? "Edit Content" : "Create Content") - Blazor CMS</PageTitle>
+
+<MudText Typo="Typo.h3" GutterBottom="true">@(Id.HasValue ? "Edit Content" : "Create New Content")</MudText>
+
+<MudPaper Class="pa-4" Elevation="2">
+    <MudForm @ref="form" @bind-IsValid="@success">
+        <MudTextField @bind-Value="content.Title" Label="Title" Required="true" RequiredError="Title is required" />
+        
+        <MudTextField @bind-Value="content.Slug" Label="Slug" HelperText="URL-friendly version of title" 
+                      Required="true" Class="mt-4" />
+        
+        <MudTextField @bind-Value="content.Summary" Label="Summary" Lines="3" 
+                      HelperText="Brief description of the content" Class="mt-4" />
+        
+        <MudTextField @bind-Value="content.Body" Label="Content Body" Lines="10" 
+                      Required="true" RequiredError="Content body is required" Class="mt-4" />
+        
+        <MudSelect @bind-Value="content.Status" Label="Status" Required="true" Class="mt-4">
+            <MudSelectItem Value="@ContentStatus.Draft">Draft</MudSelectItem>
+            <MudSelectItem Value="@ContentStatus.Published">Published</MudSelectItem>
+            <MudSelectItem Value="@ContentStatus.Archived">Archived</MudSelectItem>
+        </MudSelect>
+        
+        <MudTextField @bind-Value="content.MetaTitle" Label="Meta Title" 
+                      HelperText="SEO title (optional)" Class="mt-4" />
+        
+        <MudTextField @bind-Value="content.MetaDescription" Label="Meta Description" Lines="2"
+                      HelperText="SEO description (optional)" Class="mt-4" />
+        
+        <div class="d-flex justify-space-between mt-6">
+            <MudButton Variant="Variant.Filled" Color="Color.Default" 
+                       OnClick="@(() => Navigation.NavigateTo("/content"))">
+                Cancel
+            </MudButton>
+            <MudButton Variant="Variant.Filled" Color="Color.Primary" 
+                       Disabled="@(!success)" OnClick="SaveContent">
+                @(Id.HasValue ? "Update" : "Create")
+            </MudButton>
+        </div>
+    </MudForm>
+</MudPaper>
+@code {
+    [Parameter]
+    public int? Id { get; set; }
+
+    private Content content = new() { Status = ContentStatus.Draft };
+    private MudForm? form;
+    private bool success;
+
+    protected override async Task OnInitializedAsync()
+    {
+        if (Id.HasValue)
+        {
+            var existingContent = await ContentRepository.GetByIdAsync(Id.Value);
+            if (existingContent != null)
+            {
+                content = existingContent;
+            }
+            else
+            {
+                Navigation.NavigateTo("/content");
+            }
+        }
+    }
+
+    private async Task SaveContent()
+    {
+        if (form != null)
+        {
+            await form.Validate();
+        }
+        
+        if (!success) return;
+
+        try
+        {
+            // Set author ID (hardcoded for now, will use real user later)
+            content.AuthorId = "system";
+
+            if (Id.HasValue)
+            {
+                await ContentRepository.UpdateAsync(content);
+                Snackbar.Add("Content updated successfully!", Severity.Success);
+            }
+            else
+            {
+                if (content.Status == ContentStatus.Published)
+                {
+                    content.PublishedDate = DateTime.Now;
+                }
+                await ContentRepository.CreateAsync(content);
+                Snackbar.Add("Content created successfully!", Severity.Success);
+            }
+
+            Navigation.NavigateTo("/content");
+        }
+        catch (Exception ex)
+        {
+            Snackbar.Add($"Error: {ex.Message}", Severity.Error);
+        }
+    }
+}

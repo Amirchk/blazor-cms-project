@@ -2,6 +2,8 @@ using CMSProject.Web.Components;
 using CMSProject.Infrastructure.Data;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
+using CMSProject.Core.Interfaces;
+using CMSProject.Infrastructure.Repositories;
 using MudBlazor.Services;  
 
 var builder = WebApplication.CreateBuilder(args);
@@ -27,6 +29,9 @@ builder.Services.AddRazorComponents()
 
 // Add MudBlazor services
 builder.Services.AddMudServices();
+
+// Add repositories
+builder.Services.AddScoped<IContentRepository, ContentRepository>();
 
 var app = builder.Build();
 

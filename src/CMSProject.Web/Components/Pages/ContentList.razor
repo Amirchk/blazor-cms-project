@@ -1,0 +1,91 @@
+@page "/content"
+@layout AdminLayout
+@using CMSProject.Core.Entities
+@using CMSProject.Core.Interfaces
+@inject IContentRepository ContentRepository
+@inject NavigationManager Navigation
+@inject IDialogService DialogService
+
+<PageTitle>Content - Blazor CMS</PageTitle>
+
+<MudText Typo="Typo.h3" GutterBottom="true">Content Management</MudText>
+<MudText Class="mb-4">Manage all your articles and posts</MudText>
+
+<MudButton Variant="Variant.Filled" Color="Color.Primary" StartIcon="@Icons.Material.Filled.Add" 
+           OnClick="@(() => Navigation.NavigateTo("/content/create"))" Class="mb-4">
+    New Content
+</MudButton>
+
+<MudPaper Elevation="2">
+    <MudTable Items="@contents" Hover="true" Breakpoint="Breakpoint.Sm" Loading="@loading" LoadingProgressColor="Color.Info">
+        <HeaderContent>
+            <MudTh>Title</MudTh>
+            <MudTh>Status</MudTh>
+            <MudTh>Category</MudTh>
+            <MudTh>Created Date</MudTh>
+            <MudTh>Actions</MudTh>
+        </HeaderContent>
+        <RowTemplate>
+            <MudTd DataLabel="Title">@context.Title</MudTd>
+            <MudTd DataLabel="Status">
+    <MudText Color="@GetStatusColor(context.Status)" Typo="Typo.body2">
+        <strong>@context.Status.ToString()</strong>
+    </MudText>
+</MudTd>
+            <MudTd DataLabel="Category">@(context.Category?.Name ?? "No Category")</MudTd>
+            <MudTd DataLabel="Created">@context.CreatedDate.ToString("MMM dd, yyyy")</MudTd>
+            <MudTd DataLabel="Actions">
+                <MudIconButton Icon="@Icons.Material.Filled.Edit" Color="Color.Primary" Size="Size.Small"
+                               OnClick="@(() => Navigation.NavigateTo($"/content/edit/{context.Id}"))" />
+                <MudIconButton Icon="@Icons.Material.Filled.Delete" Color="Color.Error" Size="Size.Small"
+                               OnClick="@(() => DeleteContent(context.Id))" />
+            </MudTd>
+        </RowTemplate>
+        <NoRecordsContent>
+            <MudText>No content found. Create your first article!</MudText>
+        </NoRecordsContent>
+    </MudTable>
+</MudPaper>
+
+@code {
+    private List<Content> contents = new();
+    private bool loading = true;
+
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadContent();
+    }
+
+    private async Task LoadContent()
+    {
+        loading = true;
+        var result = await ContentRepository.GetAllAsync();
+        contents = result.ToList();
+        loading = false;
+    }
+
+    private Color GetStatusColor(ContentStatus status)
+    {
+        return status switch
+        {
+            ContentStatus.Draft => Color.Warning,
+            ContentStatus.Published => Color.Success,
+            ContentStatus.Archived => Color.Default,
+            _ => Color.Default
+        };
+    }
+
+    private async Task DeleteContent(int id)
+    {
+        bool? result = await DialogService.ShowMessageBox(
+            "Confirm Delete",
+            "Are you sure you want to delete this content?",
+            yesText: "Delete", cancelText: "Cancel");
+
+        if (result == true)
+        {
+            await ContentRepository.DeleteAsync(id);
+            await LoadContent();
+        }
+    }
+}
