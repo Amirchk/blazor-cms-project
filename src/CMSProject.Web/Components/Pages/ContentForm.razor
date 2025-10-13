@@ -6,6 +6,7 @@
 @inject IContentRepository ContentRepository
 @inject NavigationManager Navigation
 @inject ISnackbar Snackbar
+@inject ICategoryRepository CategoryRepository
 
 <PageTitle>@(Id.HasValue ? "Edit Content" : "Create Content") - Blazor CMS</PageTitle>
 
@@ -23,7 +24,13 @@
         
         <MudTextField @bind-Value="content.Body" Label="Content Body" Lines="10" 
                       Required="true" RequiredError="Content body is required" Class="mt-4" />
-        
+        <MudSelect @bind-Value="content.CategoryId" Label="Category" Class="mt-4" Clearable="true">
+    <MudSelectItem Value="@((int?)null)">-- No Category --</MudSelectItem>
+    @foreach (var cat in categories)
+    {
+        <MudSelectItem Value="@((int?)cat.Id)">@cat.Name</MudSelectItem>
+    }
+</MudSelect>
         <MudSelect @bind-Value="content.Status" Label="Status" Required="true" Class="mt-4">
             <MudSelectItem Value="@ContentStatus.Draft">Draft</MudSelectItem>
             <MudSelectItem Value="@ContentStatus.Published">Published</MudSelectItem>
@@ -51,26 +58,30 @@
 @code {
     [Parameter]
     public int? Id { get; set; }
-
+    private List<Category> categories = new();
     private Content content = new() { Status = ContentStatus.Draft };
     private MudForm? form;
     private bool success;
 
-    protected override async Task OnInitializedAsync()
+protected override async Task OnInitializedAsync()
+{
+    // Load categories for dropdown
+    var cats = await CategoryRepository.GetAllAsync();
+    categories = cats.ToList();
+
+    if (Id.HasValue)
     {
-        if (Id.HasValue)
+        var existingContent = await ContentRepository.GetByIdAsync(Id.Value);
+        if (existingContent != null)
         {
-            var existingContent = await ContentRepository.GetByIdAsync(Id.Value);
-            if (existingContent != null)
-            {
-                content = existingContent;
-            }
-            else
-            {
-                Navigation.NavigateTo("/content");
-            }
+            content = existingContent;
+        }
+        else
+        {
+            Navigation.NavigateTo("/content");
         }
     }
+}
 
     private async Task SaveContent()
     {

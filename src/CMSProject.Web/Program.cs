@@ -32,6 +32,7 @@ builder.Services.AddMudServices();
 
 // Add repositories
 builder.Services.AddScoped<IContentRepository, ContentRepository>();
+builder.Services.AddScoped<ICategoryRepository, CategoryRepository>();
 
 var app = builder.Build();
 

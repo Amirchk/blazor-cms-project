@@ -1,0 +1,112 @@
+@page "/categories/create"
+@page "/categories/edit/{id:int}"
+@layout AdminLayout
+@using CMSProject.Core.Entities
+@using CMSProject.Core.Interfaces
+@inject ICategoryRepository CategoryRepository
+@inject NavigationManager Navigation
+@inject ISnackbar Snackbar
+
+<PageTitle>@(Id.HasValue ? "Edit Category" : "Create Category") - Blazor CMS</PageTitle>
+
+<MudText Typo="Typo.h3" GutterBottom="true">@(Id.HasValue ? "Edit Category" : "Create New Category")</MudText>
+
+<MudPaper Class="pa-4" Elevation="2">
+    <MudForm @ref="form" @bind-IsValid="@success">
+        <MudTextField @bind-Value="category.Name" Label="Category Name" Required="true" 
+                      RequiredError="Category name is required" 
+                      HelperText="Display name for the category" />
+        
+        <MudTextField @bind-Value="category.Slug" Label="Slug" 
+                      Required="true" RequiredError="Slug is required"
+                      HelperText="URL-friendly version (e.g., technology, lifestyle)" 
+                      Class="mt-4" />
+        
+        <MudTextField @bind-Value="category.Description" Label="Description" Lines="3" 
+                      HelperText="Brief description of the category" Class="mt-4" />
+        
+        <MudSelect @bind-Value="category.ParentId" Label="Parent Category" 
+                   HelperText="Leave empty for root category" Class="mt-4" Clearable="true">
+            <MudSelectItem Value="@((int?)null)">-- Root Category --</MudSelectItem>
+            @foreach (var cat in allCategories.Where(c => c.Id != Id))
+            {
+                <MudSelectItem Value="@((int?)cat.Id)">@cat.Name</MudSelectItem>
+            }
+        </MudSelect>
+        
+        <MudNumericField @bind-Value="category.DisplayOrder" Label="Display Order" 
+                         HelperText="Order in which categories appear (lower numbers first)" 
+                         Class="mt-4" />
+        
+        <div class="d-flex justify-space-between mt-6">
+            <MudButton Variant="Variant.Filled" Color="Color.Default" 
+                       OnClick="@(() => Navigation.NavigateTo("/categories"))">
+                Cancel
+            </MudButton>
+            <MudButton Variant="Variant.Filled" Color="Color.Primary" 
+                       Disabled="@(!success)" OnClick="SaveCategory">
+                @(Id.HasValue ? "Update" : "Create")
+            </MudButton>
+        </div>
+    </MudForm>
+</MudPaper>
+
+@code {
+    [Parameter]
+    public int? Id { get; set; }
+
+    private Category category = new() { DisplayOrder = 0 };
+    private List<Category> allCategories = new();
+    private MudForm? form;
+    private bool success;
+
+    protected override async Task OnInitializedAsync()
+    {
+        // Load all categories for parent selection
+        var cats = await CategoryRepository.GetAllAsync();
+        allCategories = cats.ToList();
+
+        if (Id.HasValue)
+        {
+            var existingCategory = await CategoryRepository.GetByIdAsync(Id.Value);
+            if (existingCategory != null)
+            {
+                category = existingCategory;
+            }
+            else
+            {
+                Navigation.NavigateTo("/categories");
+            }
+        }
+    }
+
+    private async Task SaveCategory()
+    {
+        if (form != null)
+        {
+            await form.Validate();
+        }
+        
+        if (!success) return;
+
+        try
+        {
+            if (Id.HasValue)
+            {
+                await CategoryRepository.UpdateAsync(category);
+                Snackbar.Add("Category updated successfully!", Severity.Success);
+            }
+            else
+            {
+                await CategoryRepository.CreateAsync(category);
+                Snackbar.Add("Category created successfully!", Severity.Success);
+            }
+
+            Navigation.NavigateTo("/categories");
+        }
+        catch (Exception ex)
+        {
+            Snackbar.Add($"Error: {ex.Message}", Severity.Error);
+        }
+    }
+}

@@ -1,0 +1,91 @@
+@page "/categories"
+@layout AdminLayout
+@using CMSProject.Core.Entities
+@using CMSProject.Core.Interfaces
+@inject ICategoryRepository CategoryRepository
+@inject NavigationManager Navigation
+@inject IDialogService DialogService
+
+<PageTitle>Categories - Blazor CMS</PageTitle>
+
+<MudText Typo="Typo.h3" GutterBottom="true">Category Management</MudText>
+<MudText Class="mb-4">Organize your content with categories</MudText>
+
+<MudButton Variant="Variant.Filled" Color="Color.Primary" StartIcon="@Icons.Material.Filled.Add" 
+           OnClick="@(() => Navigation.NavigateTo("/categories/create"))" Class="mb-4">
+    New Category
+</MudButton>
+
+<MudPaper Elevation="2">
+    <MudTable Items="@categories" Hover="true" Breakpoint="Breakpoint.Sm" Loading="@loading" LoadingProgressColor="Color.Info">
+        <HeaderContent>
+            <MudTh>Name</MudTh>
+            <MudTh>Slug</MudTh>
+            <MudTh>Parent Category</MudTh>
+            <MudTh>Display Order</MudTh>
+            <MudTh>Content Count</MudTh>
+            <MudTh>Actions</MudTh>
+        </HeaderContent>
+        <RowTemplate>
+            <MudTd DataLabel="Name">@context.Name</MudTd>
+            <MudTd DataLabel="Slug">
+                <MudText Typo="Typo.body2" Color="Color.Secondary">@context.Slug</MudText>
+            </MudTd>
+            <MudTd DataLabel="Parent">@(context.Parent?.Name ?? "Root")</MudTd>
+            <MudTd DataLabel="Order">@context.DisplayOrder</MudTd>
+            <MudTd DataLabel="Content">@context.Contents.Count</MudTd>
+            <MudTd DataLabel="Actions">
+                <MudIconButton Icon="@Icons.Material.Filled.Edit" Color="Color.Primary" Size="Size.Small"
+                               OnClick="@(() => Navigation.NavigateTo($"/categories/edit/{context.Id}"))" />
+                <MudIconButton Icon="@Icons.Material.Filled.Delete" Color="Color.Error" Size="Size.Small"
+                               OnClick="@(() => DeleteCategory(context.Id))" />
+            </MudTd>
+        </RowTemplate>
+        <NoRecordsContent>
+            <MudText>No categories found. Create your first category!</MudText>
+        </NoRecordsContent>
+    </MudTable>
+</MudPaper>
+
+@code {
+    private List<Category> categories = new();
+    private bool loading = true;
+
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadCategories();
+    }
+
+    private async Task LoadCategories()
+    {
+        loading = true;
+        var result = await CategoryRepository.GetAllAsync();
+        categories = result.ToList();
+        loading = false;
+    }
+
+    private async Task DeleteCategory(int id)
+    {
+        var category = categories.FirstOrDefault(c => c.Id == id);
+        
+        if (category?.Contents.Count > 0)
+        {
+            await DialogService.ShowMessageBox(
+                "Cannot Delete",
+                "This category has content assigned to it. Please remove or reassign the content first.",
+                yesText: "OK");
+            return;
+        }
+
+        bool? result = await DialogService.ShowMessageBox(
+            "Confirm Delete",
+            "Are you sure you want to delete this category?",
+            yesText: "Delete", cancelText: "Cancel");
+
+        if (result == true)
+        {
+            await CategoryRepository.DeleteAsync(id);
+            await LoadCategories();
+        }
+    }
+}
