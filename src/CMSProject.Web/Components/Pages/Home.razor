@@ -1,68 +1,174 @@
 ﻿@page "/"
 @layout AdminLayout
+@using CMSProject.Application.Services
+@using CMSProject.Core.Entities
+@inject DashboardService DashboardService
+@inject NavigationManager Navigation
 
 <PageTitle>Dashboard - Blazor CMS</PageTitle>
 
 <MudText Typo="Typo.h3" GutterBottom="true">Dashboard</MudText>
 <MudText Class="mb-8">Welcome to your Blazor CMS Admin Panel</MudText>
 
-<MudGrid>
-    <MudItem xs="12" sm="6" md="3">
-        <MudCard Elevation="2">
-            <MudCardContent>
-                <MudText Typo="Typo.h5">Content</MudText>
-                <MudText Typo="Typo.h3">0</MudText>
-                <MudText Typo="Typo.body2" Color="Color.Secondary">Total Articles</MudText>
-            </MudCardContent>
-        </MudCard>
-    </MudItem>
-    
-    <MudItem xs="12" sm="6" md="3">
-        <MudCard Elevation="2">
-            <MudCardContent>
-                <MudText Typo="Typo.h5">Media</MudText>
-                <MudText Typo="Typo.h3">0</MudText>
-                <MudText Typo="Typo.body2" Color="Color.Secondary">Total Files</MudText>
-            </MudCardContent>
-        </MudCard>
-    </MudItem>
-    
-    <MudItem xs="12" sm="6" md="3">
-        <MudCard Elevation="2">
-            <MudCardContent>
-                <MudText Typo="Typo.h5">Categories</MudText>
-                <MudText Typo="Typo.h3">0</MudText>
-                <MudText Typo="Typo.body2" Color="Color.Secondary">Total Categories</MudText>
-            </MudCardContent>
-        </MudCard>
-    </MudItem>
-    
-    <MudItem xs="12" sm="6" md="3">
-        <MudCard Elevation="2">
-            <MudCardContent>
-                <MudText Typo="Typo.h5">Users</MudText>
-                <MudText Typo="Typo.h3">0</MudText>
-                <MudText Typo="Typo.body2" Color="Color.Secondary">Total Users</MudText>
-            </MudCardContent>
-        </MudCard>
-    </MudItem>
-</MudGrid>
+@if (loading)
+{
+    <MudProgressCircular Color="Color.Primary" Indeterminate="true" />
+}
+else
+{
+    <MudGrid>
+        <MudItem xs="12" sm="6" md="3">
+            <MudCard Elevation="2" Class="cursor-pointer" @onclick="@(() => Navigation.NavigateTo("/content"))">
+                <MudCardContent>
+                    <div class="d-flex justify-space-between align-center">
+                        <div>
+                            <MudText Typo="Typo.h6" Color="Color.Primary">Total Content</MudText>
+                            <MudText Typo="Typo.h3">@stats.TotalContent</MudText>
+                        </div>
+                        <MudIcon Icon="@Icons.Material.Filled.Article" Size="Size.Large" Color="Color.Primary" />
+                    </div>
+                    <MudText Typo="Typo.body2" Color="Color.Secondary" Class="mt-2">
+                        @stats.PublishedContent published, @stats.DraftContent drafts
+                    </MudText>
+                </MudCardContent>
+            </MudCard>
+        </MudItem>
+        
+        <MudItem xs="12" sm="6" md="3">
+            <MudCard Elevation="2" Class="cursor-pointer" @onclick="@(() => Navigation.NavigateTo("/categories"))">
+                <MudCardContent>
+                    <div class="d-flex justify-space-between align-center">
+                        <div>
+                            <MudText Typo="Typo.h6" Color="Color.Secondary">Categories</MudText>
+                            <MudText Typo="Typo.h3">@stats.TotalCategories</MudText>
+                        </div>
+                        <MudIcon Icon="@Icons.Material.Filled.Category" Size="Size.Large" Color="Color.Secondary" />
+                    </div>
+                    <MudText Typo="Typo.body2" Color="Color.Secondary" Class="mt-2">
+                        Organize your content
+                    </MudText>
+                </MudCardContent>
+            </MudCard>
+        </MudItem>
+        
+        <MudItem xs="12" sm="6" md="3">
+            <MudCard Elevation="2">
+                <MudCardContent>
+                    <div class="d-flex justify-space-between align-center">
+                        <div>
+                            <MudText Typo="Typo.h6" Color="Color.Tertiary">Media Files</MudText>
+                            <MudText Typo="Typo.h3">@stats.TotalMediaFiles</MudText>
+                        </div>
+                        <MudIcon Icon="@Icons.Material.Filled.Image" Size="Size.Large" Color="Color.Tertiary" />
+                    </div>
+                    <MudText Typo="Typo.body2" Color="Color.Secondary" Class="mt-2">
+                        Coming soon
+                    </MudText>
+                </MudCardContent>
+            </MudCard>
+        </MudItem>
+        
+        <MudItem xs="12" sm="6" md="3">
+            <MudCard Elevation="2">
+                <MudCardContent>
+                    <div class="d-flex justify-space-between align-center">
+                        <div>
+                            <MudText Typo="Typo.h6" Color="Color.Success">Published</MudText>
+                            <MudText Typo="Typo.h3">@stats.PublishedContent</MudText>
+                        </div>
+                        <MudIcon Icon="@Icons.Material.Filled.CheckCircle" Size="Size.Large" Color="Color.Success" />
+                    </div>
+                    <MudText Typo="Typo.body2" Color="Color.Secondary" Class="mt-2">
+                        Live articles
+                    </MudText>
+                </MudCardContent>
+            </MudCard>
+        </MudItem>
+    </MudGrid>
 
-<MudText Typo="Typo.h4" Class="mt-8 mb-4">Quick Actions</MudText>
-<MudGrid>
-    <MudItem xs="12" md="4">
-        <MudButton Variant="Variant.Filled" Color="Color.Primary" FullWidth="true" StartIcon="@Icons.Material.Filled.Add">
-            New Content
-        </MudButton>
-    </MudItem>
-    <MudItem xs="12" md="4">
-        <MudButton Variant="Variant.Filled" Color="Color.Secondary" FullWidth="true" StartIcon="@Icons.Material.Filled.Upload">
-            Upload Media
-        </MudButton>
-    </MudItem>
-    <MudItem xs="12" md="4">
-        <MudButton Variant="Variant.Filled" Color="Color.Tertiary" FullWidth="true" StartIcon="@Icons.Material.Filled.Category">
-            Add Category
-        </MudButton>
-    </MudItem>
-</MudGrid>
+    <MudText Typo="Typo.h4" Class="mt-8 mb-4">Recent Content</MudText>
+    
+    @if (stats.RecentContent.Any())
+    {
+        <MudPaper Elevation="2">
+    <MudList T="string" Clickable="true">
+        @foreach (var content in stats.RecentContent)
+        {
+            <MudListItem T="string" @onclick="@(() => Navigation.NavigateTo($"/content/edit/{content.Id}"))">
+                <div class="d-flex justify-space-between align-center">
+                    <div>
+                        <MudText Typo="Typo.body1">@content.Title</MudText>
+                        <MudText Typo="Typo.body2" Color="Color.Secondary">
+                            @content.CreatedDate.ToString("MMM dd, yyyy") • @content.Status
+                        </MudText>
+                    </div>
+                    <MudChip T="string" Color="@GetStatusColor(content.Status)" Size="Size.Small">
+                        @content.Status.ToString()
+                    </MudChip>
+                </div>
+            </MudListItem>
+            <MudDivider />
+        }
+    </MudList>
+</MudPaper>
+    }
+    else
+    {
+        <MudPaper Class="pa-4" Elevation="2">
+            <MudText>No content yet. Create your first article!</MudText>
+        </MudPaper>
+    }
+
+    <MudText Typo="Typo.h4" Class="mt-8 mb-4">Quick Actions</MudText>
+    <MudGrid>
+        <MudItem xs="12" md="4">
+            <MudButton Variant="Variant.Filled" Color="Color.Primary" FullWidth="true" 
+                       StartIcon="@Icons.Material.Filled.Add"
+                       OnClick="@(() => Navigation.NavigateTo("/content/create"))">
+                New Content
+            </MudButton>
+        </MudItem>
+        <MudItem xs="12" md="4">
+            <MudButton Variant="Variant.Filled" Color="Color.Secondary" FullWidth="true" 
+                       StartIcon="@Icons.Material.Filled.Upload"
+                       Disabled="true">
+                Upload Media (Coming Soon)
+            </MudButton>
+        </MudItem>
+        <MudItem xs="12" md="4">
+            <MudButton Variant="Variant.Filled" Color="Color.Tertiary" FullWidth="true" 
+                       StartIcon="@Icons.Material.Filled.Category"
+                       OnClick="@(() => Navigation.NavigateTo("/categories/create"))">
+                Add Category
+            </MudButton>
+        </MudItem>
+    </MudGrid>
+}
+
+@code {
+    private DashboardStats stats = new();
+    private bool loading = true;
+
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadStats();
+    }
+
+    private async Task LoadStats()
+    {
+        loading = true;
+        stats = await DashboardService.GetStatsAsync();
+        loading = false;
+    }
+
+    private Color GetStatusColor(ContentStatus status)
+    {
+        return status switch
+        {
+            ContentStatus.Draft => Color.Warning,
+            ContentStatus.Published => Color.Success,
+            ContentStatus.Archived => Color.Default,
+            _ => Color.Default
+        };
+    }
+}
