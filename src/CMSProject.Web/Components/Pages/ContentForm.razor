@@ -22,8 +22,14 @@
         <MudTextField @bind-Value="content.Summary" Label="Summary" Lines="3" 
                       HelperText="Brief description of the content" Class="mt-4" />
         
-        <MudTextField @bind-Value="content.Body" Label="Content Body" Lines="10" 
-                      Required="true" RequiredError="Content body is required" Class="mt-4" />
+<div class="mt-4">
+    <MudText Typo="Typo.body1" Class="mb-2">Content Body *</MudText>
+    <RichTextEditor @bind-Value="content.Body" />
+    @if (string.IsNullOrEmpty(content.Body))
+    {
+        <MudText Typo="Typo.caption" Color="Color.Error">Content body is required</MudText>
+    }
+</div>
         <MudSelect @bind-Value="content.CategoryId" Label="Category" Class="mt-4" Clearable="true">
     <MudSelectItem Value="@((int?)null)">-- No Category --</MudSelectItem>
     @foreach (var cat in categories)
