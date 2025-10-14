@@ -6,19 +6,23 @@ namespace CMSProject.Application.Services
     {
         private readonly IContentRepository _contentRepository;
         private readonly ICategoryRepository _categoryRepository;
+        private readonly IMediaRepository _mediaRepository;
 
         public DashboardService(
             IContentRepository contentRepository,
-            ICategoryRepository categoryRepository)
+            ICategoryRepository categoryRepository,
+            IMediaRepository mediaRepository)
         {
             _contentRepository = contentRepository;
             _categoryRepository = categoryRepository;
+            _mediaRepository = mediaRepository;
         }
 
         public async Task<DashboardStats> GetStatsAsync()
         {
             var allContent = await _contentRepository.GetAllAsync();
             var allCategories = await _categoryRepository.GetAllAsync();
+            var mediaCount = await _mediaRepository.GetTotalCountAsync();
 
             var contentList = allContent.ToList();
 
@@ -28,7 +32,7 @@ namespace CMSProject.Application.Services
                 PublishedContent = contentList.Count(c => c.Status == Core.Entities.ContentStatus.Published),
                 DraftContent = contentList.Count(c => c.Status == Core.Entities.ContentStatus.Draft),
                 TotalCategories = allCategories.Count(),
-                TotalMediaFiles = 0, // Will implement when we add media feature
+                TotalMediaFiles = mediaCount,
                 RecentContent = contentList.OrderByDescending(c => c.CreatedDate).Take(5).ToList()
             };
         }

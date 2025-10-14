@@ -51,22 +51,22 @@ else
             </MudCard>
         </MudItem>
         
-        <MudItem xs="12" sm="6" md="3">
-            <MudCard Elevation="2">
-                <MudCardContent>
-                    <div class="d-flex justify-space-between align-center">
-                        <div>
-                            <MudText Typo="Typo.h6" Color="Color.Tertiary">Media Files</MudText>
-                            <MudText Typo="Typo.h3">@stats.TotalMediaFiles</MudText>
-                        </div>
-                        <MudIcon Icon="@Icons.Material.Filled.Image" Size="Size.Large" Color="Color.Tertiary" />
-                    </div>
-                    <MudText Typo="Typo.body2" Color="Color.Secondary" Class="mt-2">
-                        Coming soon
-                    </MudText>
-                </MudCardContent>
-            </MudCard>
-        </MudItem>
+<MudItem xs="12" sm="6" md="3">
+    <MudCard Elevation="2" Class="cursor-pointer" @onclick="@(() => Navigation.NavigateTo("/media"))">
+        <MudCardContent>
+            <div class="d-flex justify-space-between align-center">
+                <div>
+                    <MudText Typo="Typo.h6" Color="Color.Tertiary">Media Files</MudText>
+                    <MudText Typo="Typo.h3">@stats.TotalMediaFiles</MudText>
+                </div>
+                <MudIcon Icon="@Icons.Material.Filled.Image" Size="Size.Large" Color="Color.Tertiary" />
+            </div>
+            <MudText Typo="Typo.body2" Color="Color.Secondary" Class="mt-2">
+                Images and documents
+            </MudText>
+        </MudCardContent>
+    </MudCard>
+</MudItem>
         
         <MudItem xs="12" sm="6" md="3">
             <MudCard Elevation="2">
@@ -129,12 +129,12 @@ else
             </MudButton>
         </MudItem>
         <MudItem xs="12" md="4">
-            <MudButton Variant="Variant.Filled" Color="Color.Secondary" FullWidth="true" 
-                       StartIcon="@Icons.Material.Filled.Upload"
-                       Disabled="true">
-                Upload Media (Coming Soon)
-            </MudButton>
-        </MudItem>
+    <MudButton Variant="Variant.Filled" Color="Color.Secondary" FullWidth="true" 
+               StartIcon="@Icons.Material.Filled.Upload"
+               OnClick="@(() => Navigation.NavigateTo("/media"))">
+        Upload Media
+    </MudButton>
+</MudItem>
         <MudItem xs="12" md="4">
             <MudButton Variant="Variant.Filled" Color="Color.Tertiary" FullWidth="true" 
                        StartIcon="@Icons.Material.Filled.Category"

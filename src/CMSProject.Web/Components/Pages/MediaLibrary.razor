@@ -1,0 +1,191 @@
+@page "/media"
+@layout AdminLayout
+@using CMSProject.Core.Entities
+@using CMSProject.Application.Services
+@using CMSProject.Web.Services
+@using Microsoft.AspNetCore.Components.Forms
+@inject MediaService MediaService
+@inject IDialogService DialogService
+@inject ISnackbar Snackbar
+
+<PageTitle>Media Library - Blazor CMS</PageTitle>
+
+<MudText Typo="Typo.h3" GutterBottom="true">Media Library</MudText>
+<MudText Class="mb-4">Upload and manage your media files</MudText>
+
+<MudGrid>
+    <MudItem xs="12" md="8">
+        <MudPaper Class="pa-4 mb-4" Elevation="2">
+            <MudText Typo="Typo.h6" Class="mb-2">Upload Files</MudText>
+            <InputFile id="fileInput" OnChange="HandleFileSelection" hidden multiple accept="image/*,.pdf,.doc,.docx" />
+            <MudButton HtmlTag="label" for="fileInput" Variant="Variant.Filled" Color="Color.Primary" StartIcon="@Icons.Material.Filled.CloudUpload">
+                Choose Files
+            </MudButton>
+            @if (selectedFiles.Any())
+            {
+                <MudText Typo="Typo.body2" Class="mt-2">
+                    Selected: @string.Join(", ", selectedFiles.Select(f => f.Name))
+                </MudText>
+                <MudButton Variant="Variant.Filled" Color="Color.Success" OnClick="UploadFiles" Class="mt-2" Disabled="@uploading">
+                    @if (uploading)
+                    {
+                        <MudProgressCircular Size="Size.Small" Indeterminate="true" Class="mr-2" />
+                        <text>Uploading...</text>
+                    }
+                    else
+                    {
+                        <text>Upload</text>
+                    }
+                </MudButton>
+            }
+            <MudText Typo="Typo.caption" Color="Color.Secondary" Class="mt-2">
+                Allowed: Images (JPG, PNG, GIF), Documents (PDF, DOC, DOCX) • Max size: 10MB
+            </MudText>
+        </MudPaper>
+
+        <MudPaper Elevation="2">
+            @if (loading)
+            {
+                <div class="pa-4">
+                    <MudProgressCircular Color="Color.Primary" Indeterminate="true" />
+                </div>
+            }
+            else if (!mediaFiles.Any())
+            {
+                <div class="pa-4">
+                    <MudText>No media files yet. Upload your first file!</MudText>
+                </div>
+            }
+            else
+            {
+                <MudGrid Class="pa-4">
+                    @foreach (var media in mediaFiles)
+                    {
+                        <MudItem xs="6" sm="4" md="3">
+                            <MudCard>
+                                <MudCardMedia Image="@GetThumbnailUrl(media)" Height="150" />
+                                <MudCardContent>
+                                    <MudText Typo="Typo.body2" Style="overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">
+                                        @media.FileName
+                                    </MudText>
+                                    <MudText Typo="Typo.caption" Color="Color.Secondary">
+                                        @MediaService.FormatFileSize(media.FileSize)
+                                    </MudText>
+                                </MudCardContent>
+                                <MudCardActions>
+                                    <MudIconButton Icon="@Icons.Material.Filled.ContentCopy" Color="Color.Primary" Size="Size.Small" 
+                                                   OnClick="@(() => CopyUrl(media))" Title="Copy URL" />
+                                    <MudIconButton Icon="@Icons.Material.Filled.Delete" Color="Color.Error" Size="Size.Small" 
+                                                   OnClick="@(() => DeleteMedia(media.Id))" Title="Delete" />
+                                </MudCardActions>
+                            </MudCard>
+                        </MudItem>
+                    }
+                </MudGrid>
+            }
+        </MudPaper>
+    </MudItem>
+
+    <MudItem xs="12" md="4">
+        <MudPaper Class="pa-4" Elevation="2">
+            <MudText Typo="Typo.h6" Class="mb-4">Storage Info</MudText>
+            <MudText Typo="Typo.body1">Total Files: <strong>@mediaFiles.Count</strong></MudText>
+            <MudText Typo="Typo.body2" Color="Color.Secondary" Class="mt-2">
+                Images, documents, and other media
+            </MudText>
+        </MudPaper>
+    </MudItem>
+</MudGrid>
+
+@code {
+    private List<Media> mediaFiles = new();
+    private List<IBrowserFile> selectedFiles = new();
+    private bool loading = true;
+    private bool uploading = false;
+
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadMedia();
+    }
+
+    private async Task LoadMedia()
+    {
+        loading = true;
+        var result = await MediaService.GetAllMediaAsync();
+        mediaFiles = result.ToList();
+        loading = false;
+    }
+
+    private void HandleFileSelection(InputFileChangeEventArgs e)
+    {
+        selectedFiles = e.GetMultipleFiles(10).ToList();
+    }
+
+    private async Task UploadFiles()
+    {
+        if (!selectedFiles.Any()) return;
+
+        uploading = true;
+        int successCount = 0;
+        int failCount = 0;
+
+        foreach (var file in selectedFiles)
+        {
+            var result = await MediaService.UploadFileAsync(file, "system");
+            if (result.Success)
+                successCount++;
+            else
+            {
+                failCount++;
+                Snackbar.Add(result.Message, Severity.Error);
+            }
+        }
+
+        selectedFiles.Clear();
+        uploading = false;
+
+        if (successCount > 0)
+            Snackbar.Add($"{successCount} file(s) uploaded successfully!", Severity.Success);
+
+        await LoadMedia();
+    }
+
+    private async Task DeleteMedia(int id)
+    {
+        bool? result = await DialogService.ShowMessageBox(
+            "Confirm Delete",
+            "Are you sure you want to delete this file?",
+            yesText: "Delete", cancelText: "Cancel");
+
+        if (result == true)
+        {
+            var deleted = await MediaService.DeleteFileAsync(id);
+            if (deleted)
+            {
+                Snackbar.Add("File deleted successfully!", Severity.Success);
+                await LoadMedia();
+            }
+            else
+            {
+                Snackbar.Add("Failed to delete file", Severity.Error);
+            }
+        }
+    }
+
+    private string GetThumbnailUrl(Media media)
+    {
+        if (media.MimeType.StartsWith("image/"))
+            return media.FilePath;
+        
+        // Default icons for non-images
+        if (media.MimeType.Contains("pdf"))
+            return "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='100' height='100'%3E%3Crect fill='%23dc3545' width='100' height='100'/%3E%3Ctext x='50%25' y='50%25' font-size='14' fill='white' text-anchor='middle' dy='.3em'%3EPDF%3C/text%3E%3C/svg%3E";
+        
+        return "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='100' height='100'%3E%3Crect fill='%236c757d' width='100' height='100'/%3E%3Ctext x='50%25' y='50%25' font-size='14' fill='white' text-anchor='middle' dy='.3em'%3EDOC%3C/text%3E%3C/svg%3E";
+    }
+
+    private async Task CopyUrl(Media media)
+    {
+        Snackbar.Add($"URL: {media.FilePath}", Severity.Info);
+    }
+}
