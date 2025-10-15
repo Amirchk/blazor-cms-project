@@ -18,7 +18,7 @@ window.quillInterop = {
                     [{ 'direction': 'rtl' }],
                     [{ 'color': [] }, { 'background': [] }],
                     [{ 'align': [] }],
-                    ['link', 'image'],
+                    ['link'],
                     ['clean']
                 ]
             }
@@ -42,6 +42,22 @@ window.quillInterop = {
         var quill = Quill.find(quillElement);
         if (quill && content) {
             quill.root.innerHTML = content;
+        }
+    },
+
+    insertImage: function (quillElement, imageUrl, altText) {
+        var quill = Quill.find(quillElement);
+        if (quill) {
+            var range = quill.getSelection(true);
+            var index = range ? range.index : quill.getLength();
+            
+            quill.insertEmbed(index, 'image', imageUrl);
+            quill.setSelection(index + 1);
+            
+            // Update content after insertion
+            var html = quill.root.innerHTML;
+            // Trigger change event manually
+            quill.root.dispatchEvent(new Event('text-change'));
         }
     }
 };

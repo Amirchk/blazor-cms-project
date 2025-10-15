@@ -1,0 +1,98 @@
+@using CMSProject.Core.Entities
+@using CMSProject.Web.Services
+@using MudBlazor
+@inject MediaService MediaService
+@inject IDialogService DialogService
+
+<MudDialog>
+    <DialogContent>
+        <MudText Typo="Typo.h6" Class="mb-4">Select Media</MudText>
+
+        @if (loading)
+        {
+            <MudProgressCircular Color="Color.Primary" Indeterminate="true" />
+        }
+        else if (!mediaFiles.Any())
+        {
+            <MudText>No media files available. Upload files in the Media Library first.</MudText>
+        }
+        else
+        {
+            <MudGrid>
+                @foreach (var media in mediaFiles)
+                {
+                    <MudItem xs="6" sm="4" md="3">
+                        <MudCard Class="@(selectedMedia?.Id == media.Id ? "selected-media" : "")"
+                                 Style="cursor: pointer;"
+                                 @onclick="@(() => SelectMedia(media))">
+                            <MudCardMedia Image="@GetThumbnailUrl(media)" Height="120" />
+                            <MudCardContent>
+                                <MudText Typo="Typo.body2" Style="font-size: 0.75rem; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">
+                                    @media.FileName
+                                </MudText>
+                            </MudCardContent>
+                        </MudCard>
+                    </MudItem>
+                }
+            </MudGrid>
+        }
+    </DialogContent>
+    <DialogActions>
+        <MudButton OnClick="Cancel">Cancel</MudButton>
+        <MudButton Color="Color.Primary" Variant="Variant.Filled" OnClick="Insert" Disabled="@(selectedMedia == null)">
+            Insert
+        </MudButton>
+    </DialogActions>
+</MudDialog>
+
+<style>
+    .selected-media {
+        border: 2px solid var(--mud-palette-primary);
+        box-shadow: 0 0 10px var(--mud-palette-primary);
+    }
+</style>
+
+@code {
+    [CascadingParameter]
+    IMudDialogInstance MudDialog { get; set; } = default!;
+
+    private List<Media> mediaFiles = new();
+    private Media? selectedMedia;
+    private bool loading = true;
+
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadMedia();
+    }
+
+    private async Task LoadMedia()
+    {
+        loading = true;
+        var result = await MediaService.GetAllMediaAsync();
+        mediaFiles = result.Where(m => m.MimeType.StartsWith("image/")).ToList();
+        loading = false;
+    }
+
+    private void SelectMedia(Media media)
+    {
+        selectedMedia = media;
+    }
+
+    private string GetThumbnailUrl(Media media)
+    {
+        return media.FilePath;
+    }
+
+    private void Insert()
+    {
+        if (selectedMedia != null)
+        {
+            MudDialog.Close(DialogResult.Ok(selectedMedia));
+        }
+    }
+
+    private void Cancel()
+    {
+        MudDialog.Cancel();
+    }
+}

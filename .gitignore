@@ -3,4 +3,4 @@ obj/
 *.dll
 *.pdb
 *.cache
-*/appsettings.json
+*appsettings.json

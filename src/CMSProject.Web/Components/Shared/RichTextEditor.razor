@@ -1,8 +1,19 @@
 @using Microsoft.JSInterop
+@using CMSProject.Core.Entities
 @inject IJSRuntime JSRuntime
+@inject IDialogService DialogService
 @implements IAsyncDisposable
 
 <div>
+    <MudButton Variant="Variant.Filled" 
+               Color="Color.Primary" 
+               StartIcon="@Icons.Material.Filled.Image" 
+               OnClick="OpenMediaPicker"
+               Class="mb-2"
+               Size="Size.Small">
+        Insert Image
+    </MudButton>
+    
     <div @ref="quillElement" style="height: 400px;"></div>
 </div>
 
@@ -45,6 +56,35 @@
     {
         Value = content;
         await ValueChanged.InvokeAsync(content);
+    }
+
+    private async Task OpenMediaPicker()
+    {
+        var options = new DialogOptions 
+        { 
+            MaxWidth = MaxWidth.Large, 
+            FullWidth = true 
+        };
+
+        var dialog = await DialogService.ShowAsync<MediaPicker>("Select Image", options);
+        var result = await dialog.Result;
+
+        if (!result.Canceled && result.Data is Media selectedMedia)
+        {
+            await InsertImage(selectedMedia.FilePath, selectedMedia.AltText);
+        }
+    }
+
+    private async Task InsertImage(string imageUrl, string altText)
+    {
+        try
+        {
+            await JSRuntime.InvokeVoidAsync("quillInterop.insertImage", quillElement, imageUrl, altText);
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Error inserting image: {ex.Message}");
+        }
     }
 
     public async ValueTask DisposeAsync()
