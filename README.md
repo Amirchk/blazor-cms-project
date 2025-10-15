@@ -61,9 +61,9 @@ Clean architecture
 
 📊 Project Stats:
 
-Languages: C#, Blazor, JavaScript, HTML/CSS
-Framework: ASP.NET Core 8.0
-Database: SQL Server with Entity Framework Core
-UI Library: MudBlazor
-Architecture: Layered (Core, Application, Infrastructure, Web)
-Patterns: Repository, Dependency Injection, MVC
+- Languages: C#, Blazor, JavaScript, HTML/CSS
+- Framework: ASP.NET Core 8.0
+- Database: SQL Server with Entity Framework Core
+- UI Library: MudBlazor
+- Architecture: Layered (Core, Application, Infrastructure, Web)
+- Patterns: Repository, Dependency Injection, MVC
