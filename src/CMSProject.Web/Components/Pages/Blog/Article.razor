@@ -5,6 +5,35 @@
 @inject IContentRepository ContentRepository
 @inject NavigationManager Navigation
 
+@if (article != null)
+{
+    <HeadContent>
+        <meta name="description" content="@(article.MetaDescription ?? article.Summary ?? GetExcerpt(article.Body))" />
+        <meta name="keywords" content="@(article.Category?.Name ?? "blog")" />
+        
+        <!-- Open Graph / Facebook -->
+        <meta property="og:type" content="article" />
+        <meta property="og:url" content="@Navigation.Uri" />
+        <meta property="og:title" content="@(article.MetaTitle ?? article.Title)" />
+        <meta property="og:description" content="@(article.MetaDescription ?? article.Summary ?? GetExcerpt(article.Body))" />
+        @if (!string.IsNullOrEmpty(GetFirstImage(article.Body)))
+        {
+            <meta property="og:image" content="@GetAbsoluteUrl(GetFirstImage(article.Body))" />
+        }
+        
+        <!-- Twitter -->
+        <meta property="twitter:card" content="summary_large_image" />
+        <meta property="twitter:url" content="@Navigation.Uri" />
+        <meta property="twitter:title" content="@(article.MetaTitle ?? article.Title)" />
+        <meta property="twitter:description" content="@(article.MetaDescription ?? article.Summary ?? GetExcerpt(article.Body))" />
+        @if (!string.IsNullOrEmpty(GetFirstImage(article.Body)))
+        {
+            <meta property="twitter:image" content="@GetAbsoluteUrl(GetFirstImage(article.Body))" />
+        }
+    </HeadContent>
+}
+
+
 @if (loading)
 {
     <MudProgressCircular Color="Color.Primary" Indeterminate="true" />
@@ -106,4 +135,32 @@ else
         article = allContent.FirstOrDefault(a => a.Slug == Slug);
         loading = false;
     }
+
+private string GetExcerpt(string body)
+{
+    if (string.IsNullOrEmpty(body))
+        return "";
+    
+    var text = System.Text.RegularExpressions.Regex.Replace(body, "<.*?>", string.Empty);
+    return text.Length > 160 ? text.Substring(0, 160) + "..." : text;
+}
+
+private string? GetFirstImage(string body)
+{
+    if (string.IsNullOrEmpty(body))
+        return null;
+
+    var match = System.Text.RegularExpressions.Regex.Match(body, @"<img[^>]+src=""([^"">]+)""");
+    return match.Success ? match.Groups[1].Value : null;
+}
+
+private string GetAbsoluteUrl(string? relativeUrl)
+{
+    if (string.IsNullOrEmpty(relativeUrl))
+        return "";
+    
+    var baseUri = new Uri(Navigation.BaseUri);
+    return new Uri(baseUri, relativeUrl).ToString();
+}
+
 }

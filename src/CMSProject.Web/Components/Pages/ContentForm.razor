@@ -14,10 +14,23 @@
 
 <MudPaper Class="pa-4" Elevation="2">
     <MudForm @ref="form" @bind-IsValid="@success">
+        <MudGrid>
+    <MudItem xs="12" md="9">
         <MudTextField @bind-Value="content.Title" Label="Title" Required="true" RequiredError="Title is required" />
+    </MudItem>
+    <MudItem xs="12" md="3">
+        <MudButton Variant="Variant.Outlined" Color="Color.Secondary" FullWidth="true" 
+                   OnClick="GenerateSlug" StartIcon="@Icons.Material.Filled.Link" Class="mt-1">
+            Generate Slug
+        </MudButton>
+    </MudItem>
+</MudGrid>
         
-        <MudTextField @bind-Value="content.Slug" Label="Slug" HelperText="URL-friendly version of title" 
-                      Required="true" Class="mt-4" />
+        <MudTextField @bind-Value="content.Slug" Label="Slug" 
+              HelperText="URL-friendly version of title" 
+              Required="true" 
+              Counter="100" MaxLength="100"
+              Class="mt-4" />
         
         <MudTextField @bind-Value="content.Summary" Label="Summary" Lines="3" 
                       HelperText="Brief description of the content" Class="mt-4" />
@@ -44,10 +57,14 @@
         </MudSelect>
         
         <MudTextField @bind-Value="content.MetaTitle" Label="Meta Title" 
-                      HelperText="SEO title (optional)" Class="mt-4" />
+              HelperText="SEO title (recommended: 50-60 characters)" 
+              Counter="60" MaxLength="60"
+              Class="mt-4" />
         
         <MudTextField @bind-Value="content.MetaDescription" Label="Meta Description" Lines="2"
-                      HelperText="SEO description (optional)" Class="mt-4" />
+              HelperText="SEO description (recommended: 150-160 characters)" 
+              Counter="160" MaxLength="160"
+              Class="mt-4" />
         
         <div class="d-flex justify-space-between mt-6">
             <MudButton Variant="Variant.Filled" Color="Color.Default" 
@@ -125,4 +142,28 @@ protected override async Task OnInitializedAsync()
             Snackbar.Add($"Error: {ex.Message}", Severity.Error);
         }
     }
+
+private void GenerateSlug()
+{
+    if (string.IsNullOrEmpty(content.Title))
+        return;
+
+    // Convert to lowercase
+    var slug = content.Title.ToLower();
+
+    // Replace spaces with hyphens
+    slug = slug.Replace(" ", "-");
+
+    // Remove special characters
+    slug = System.Text.RegularExpressions.Regex.Replace(slug, @"[^a-z0-9\-]", "");
+
+    // Remove multiple hyphens
+    slug = System.Text.RegularExpressions.Regex.Replace(slug, @"-+", "-");
+
+    // Trim hyphens from start and end
+    slug = slug.Trim('-');
+
+    content.Slug = slug;
+}
+
 }

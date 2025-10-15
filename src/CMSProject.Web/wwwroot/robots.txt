@@ -1,0 +1,9 @@
+User-agent: *
+Allow: /blog
+Disallow: /login
+Disallow: /register
+Disallow: /content
+Disallow: /categories
+Disallow: /media
+
+Sitemap: https://yourdomain.com/sitemap/sitemap.xml
