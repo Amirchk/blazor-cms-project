@@ -46,6 +46,7 @@ builder.Services.AddScoped<IMediaRepository, MediaRepository>();
 // Add services
 builder.Services.AddScoped<DashboardService>();
 builder.Services.AddScoped<MediaService>();
+builder.Services.AddScoped<ISearchService, SearchService>();
 
 var app = builder.Build();
 

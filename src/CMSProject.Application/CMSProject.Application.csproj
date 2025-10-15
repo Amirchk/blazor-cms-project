@@ -2,6 +2,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\CMSProject.Core\CMSProject.Core.csproj" />
+    <ProjectReference Include="..\CMSProject.Infrastructure\CMSProject.Infrastructure.csproj" />
   </ItemGroup>
 
   <ItemGroup>

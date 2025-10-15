@@ -1,0 +1,42 @@
+@inject ISearchService SearchService
+@inject NavigationManager Navigation
+
+<MudPaper Class="pa-4" Elevation="2">
+    <MudTextField @bind-Value="searchQuery" 
+                 Label="Search articles..." 
+                 Variant="Variant.Outlined"
+                 Adornment="Adornment.End"
+                 AdornmentIcon="@Icons.Material.Filled.Search"
+                 OnKeyUp="HandleKeyUp"
+                 FullWidth="true" />
+                 
+    @if (showResults && results?.Results.Any() == true)
+    {
+        <MudList T="SearchResultItem" Dense="true" Class="mt-2">
+            @foreach (var result in results.Results)
+            {
+                <MudListItem T="SearchResultItem" OnClick="@(() => Navigation.NavigateTo(result.Url))">
+                    <MudText Typo="Typo.body1">@result.Title</MudText>
+                    <MudText Typo="Typo.body2" Color="Color.Secondary">
+                        @((MarkupString)result.Excerpt)
+                    </MudText>
+                </MudListItem>
+            }
+        </MudList>
+    }
+</MudPaper>
+
+@code {
+    private string searchQuery = "";
+    private SearchResult? results;
+    private bool showResults;
+    
+    private async Task HandleKeyUp(KeyboardEventArgs e)
+    {
+        if (e.Key == "Enter" && !string.IsNullOrWhiteSpace(searchQuery))
+        {
+            results = await SearchService.SearchAsync(searchQuery);
+            showResults = true;
+        }
+    }
+}
