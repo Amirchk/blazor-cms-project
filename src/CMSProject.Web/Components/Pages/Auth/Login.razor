@@ -1,0 +1,77 @@
+@page "/login"
+@using Microsoft.AspNetCore.Components.Authorization
+@inject AuthenticationStateProvider AuthenticationStateProvider
+@inject NavigationManager Navigation
+
+<MudContainer MaxWidth="MaxWidth.Small" Class="mt-8">
+    <MudPaper Class="pa-8" Elevation="4">
+        <MudText Typo="Typo.h4" Align="Align.Center" GutterBottom="true">
+            <MudIcon Icon="@Icons.Material.Filled.Lock" Size="Size.Large" /> Login
+        </MudText>
+        <MudText Typo="Typo.body2" Align="Align.Center" Class="mb-6">
+            Sign in to access your CMS admin panel
+        </MudText>
+
+        @if (showError)
+        {
+            <MudAlert Severity="Severity.Error" Class="mb-4">Invalid email or password</MudAlert>
+        }
+
+        <form method="post" action="/Account/Login">
+            <MudTextField @bind-Value="email" 
+                          Name="email"
+                          Label="Email" 
+                          Variant="Variant.Outlined"
+                          Required="true"
+                          Class="mb-4" />
+
+            <MudTextField @bind-Value="password"
+                          Name="password" 
+                          Label="Password" 
+                          Variant="Variant.Outlined"
+                          InputType="InputType.Password"
+                          Required="true"
+                          Class="mb-4" />
+
+            <MudCheckBox @bind-Value="rememberMe" Name="rememberMe" Label="Remember me" Color="Color.Primary" Class="mb-4" />
+
+            <input type="hidden" name="returnUrl" value="/" />
+
+            <MudButton ButtonType="ButtonType.Submit" 
+                       Variant="Variant.Filled" 
+                       Color="Color.Primary" 
+                       FullWidth="true"
+                       Size="Size.Large"
+                       HtmlTag="button">
+                Sign In
+            </MudButton>
+
+            <MudText Typo="Typo.body2" Align="Align.Center" Class="mt-4">
+                Don't have an account? 
+                <MudLink Href="/register" Color="Color.Primary">Register here</MudLink>
+            </MudText>
+        </form>
+    </MudPaper>
+</MudContainer>
+
+@code {
+    [SupplyParameterFromQuery]
+    public string? Error { get; set; }
+
+    private string email = string.Empty;
+    private string password = string.Empty;
+    private bool rememberMe = false;
+    private bool showError => !string.IsNullOrEmpty(Error);
+
+    protected override async Task OnInitializedAsync()
+    {
+        var authState = await AuthenticationStateProvider.GetAuthenticationStateAsync();
+        var user = authState.User;
+
+        if (user.Identity?.IsAuthenticated == true)
+        {
+            // Already logged in, redirect to home
+            Navigation.NavigateTo("/");
+        }
+    }
+}

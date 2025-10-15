@@ -25,9 +25,15 @@ builder.Services.AddIdentity<IdentityUser, IdentityRole>(options => {
 .AddEntityFrameworkStores<ApplicationDbContext>()
 .AddDefaultTokenProviders();
 
+// Add Authentication State Provider
+builder.Services.AddCascadingAuthenticationState();
+
 // Add services to the container.
 builder.Services.AddRazorComponents()
     .AddInteractiveServerComponents();
+
+// Add Controllers
+builder.Services.AddControllers();
 
 // Add MudBlazor services
 builder.Services.AddMudServices();
@@ -52,11 +58,14 @@ if (!app.Environment.IsDevelopment())
 
 app.UseHttpsRedirection();
 app.UseStaticFiles();
-app.UseAntiforgery();
 
 // Add authentication and authorization middleware
 app.UseAuthentication();
 app.UseAuthorization();
+app.UseAntiforgery();
+
+// Map controllers
+app.MapControllers();
 
 app.MapRazorComponents<App>()
     .AddInteractiveServerRenderMode();

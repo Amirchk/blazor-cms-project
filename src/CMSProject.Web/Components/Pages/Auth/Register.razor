@@ -1,0 +1,81 @@
+@page "/register"
+@using Microsoft.AspNetCore.Components.Authorization
+@inject AuthenticationStateProvider AuthenticationStateProvider
+@inject NavigationManager Navigation
+
+<MudContainer MaxWidth="MaxWidth.Small" Class="mt-8">
+    <MudPaper Class="pa-8" Elevation="4">
+        <MudText Typo="Typo.h4" Align="Align.Center" GutterBottom="true">
+            <MudIcon Icon="@Icons.Material.Filled.PersonAdd" Size="Size.Large" /> Register
+        </MudText>
+        <MudText Typo="Typo.body2" Align="Align.Center" Class="mb-6">
+            Create a new account to access the CMS
+        </MudText>
+
+        @if (showError)
+        {
+            <MudAlert Severity="Severity.Error" Class="mb-4">@Error</MudAlert>
+        }
+
+        <form method="post" action="/Account/Register">
+            <MudTextField @bind-Value="email"
+                          Name="email" 
+                          Label="Email" 
+                          Variant="Variant.Outlined"
+                          Required="true"
+                          Class="mb-4" />
+
+            <MudTextField @bind-Value="password"
+                          Name="password" 
+                          Label="Password" 
+                          Variant="Variant.Outlined"
+                          InputType="InputType.Password"
+                          Required="true"
+                          HelperText="Minimum 6 characters"
+                          Class="mb-4" />
+
+            <MudTextField @bind-Value="confirmPassword" 
+                          Label="Confirm Password" 
+                          Variant="Variant.Outlined"
+                          InputType="InputType.Password"
+                          Required="true"
+                          Class="mb-4" />
+
+            <MudButton ButtonType="ButtonType.Submit" 
+                       Variant="Variant.Filled" 
+                       Color="Color.Primary" 
+                       FullWidth="true"
+                       Size="Size.Large"
+                       HtmlTag="button"
+                       Disabled="@(password != confirmPassword)">
+                Create Account
+            </MudButton>
+
+            <MudText Typo="Typo.body2" Align="Align.Center" Class="mt-4">
+                Already have an account? 
+                <MudLink Href="/login" Color="Color.Primary">Login here</MudLink>
+            </MudText>
+        </form>
+    </MudPaper>
+</MudContainer>
+
+@code {
+    [SupplyParameterFromQuery]
+    public string? Error { get; set; }
+
+    private string email = string.Empty;
+    private string password = string.Empty;
+    private string confirmPassword = string.Empty;
+    private bool showError => !string.IsNullOrEmpty(Error);
+
+    protected override async Task OnInitializedAsync()
+    {
+        var authState = await AuthenticationStateProvider.GetAuthenticationStateAsync();
+        var user = authState.User;
+
+        if (user.Identity?.IsAuthenticated == true)
+        {
+            Navigation.NavigateTo("/");
+        }
+    }
+}
