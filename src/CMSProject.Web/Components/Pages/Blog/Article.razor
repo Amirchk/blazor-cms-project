@@ -1,0 +1,109 @@
+@page "/blog/{slug}"
+@layout PublicLayout
+@using CMSProject.Core.Entities
+@using CMSProject.Core.Interfaces
+@inject IContentRepository ContentRepository
+@inject NavigationManager Navigation
+
+@if (loading)
+{
+    <MudProgressCircular Color="Color.Primary" Indeterminate="true" />
+}
+else if (article == null)
+{
+    <MudAlert Severity="Severity.Warning">Article not found</MudAlert>
+    <MudButton Variant="Variant.Filled" Color="Color.Primary" Href="/blog" Class="mt-4">
+        Back to Blog
+    </MudButton>
+}
+else
+{
+    <PageTitle>@article.Title - My Blog</PageTitle>
+
+    <MudPaper Class="pa-8" Elevation="2">
+        <MudText Typo="Typo.h3" GutterBottom="true">@article.Title</MudText>
+        
+        <div class="d-flex align-center mb-4">
+            @if (article.Category != null)
+            {
+                <MudChip T="string" Size="Size.Small" Color="Color.Primary" Class="mr-2">
+                    @article.Category.Name
+                </MudChip>
+            }
+            <MudText Typo="Typo.body2" Color="Color.Secondary">
+                Published on @article.PublishedDate?.ToString("MMMM dd, yyyy")
+            </MudText>
+        </div>
+
+        @if (!string.IsNullOrEmpty(article.Summary))
+        {
+            <MudText Typo="Typo.h6" Color="Color.Secondary" Class="mb-4">
+                @article.Summary
+            </MudText>
+        }
+
+        <MudDivider Class="my-4" />
+
+        <div class="article-content">
+            @((MarkupString)article.Body)
+        </div>
+
+        <MudDivider Class="my-6" />
+
+        <MudButton Variant="Variant.Text" Color="Color.Primary" Href="/blog" StartIcon="@Icons.Material.Filled.ArrowBack">
+            Back to Blog
+        </MudButton>
+    </MudPaper>
+}
+
+<style>
+    .article-content {
+        line-height: 1.8;
+        font-size: 1.1rem;
+    }
+    
+    .article-content img {
+        max-width: 100%;
+        height: auto;
+        border-radius: 8px;
+        margin: 20px 0;
+    }
+
+    .article-content h1, .article-content h2, .article-content h3 {
+        margin-top: 30px;
+        margin-bottom: 15px;
+    }
+
+    .article-content p {
+        margin-bottom: 15px;
+    }
+
+    .article-content blockquote {
+        border-left: 4px solid #594ae2;
+        padding-left: 20px;
+        margin: 20px 0;
+        font-style: italic;
+        color: #666;
+    }
+</style>
+
+@code {
+    [Parameter]
+    public string Slug { get; set; } = string.Empty;
+
+    private Content? article;
+    private bool loading = true;
+
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadArticle();
+    }
+
+    private async Task LoadArticle()
+    {
+        loading = true;
+        var allContent = await ContentRepository.GetPublishedAsync();
+        article = allContent.FirstOrDefault(a => a.Slug == Slug);
+        loading = false;
+    }
+}

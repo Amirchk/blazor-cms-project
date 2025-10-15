@@ -1,0 +1,34 @@
+@inherits LayoutComponentBase
+@inject NavigationManager Navigation
+
+<MudThemeProvider />
+<MudPopoverProvider />
+<MudDialogProvider />
+<MudSnackbarProvider />
+
+<MudLayout>
+    <MudAppBar Elevation="1" Color="Color.Primary">
+        <MudText Typo="Typo.h5" Class="ml-3" Style="cursor: pointer;" @onclick='@(() => Navigation.NavigateTo("/blog"))'>
+            My Blog
+        </MudText>
+        <MudSpacer />
+        <MudButton Href="/blog" Color="Color.Inherit">Home</MudButton>
+        <MudButton Href="/blog/categories" Color="Color.Inherit">Categories</MudButton>
+        <MudButton Href="/login" Variant="Variant.Outlined" Color="Color.Inherit">Admin Login</MudButton>
+    </MudAppBar>
+    
+    <MudMainContent>
+        <MudContainer MaxWidth="MaxWidth.Large" Class="my-8">
+            @Body
+        </MudContainer>
+    </MudMainContent>
+
+    <MudAppBar Bottom="true" Elevation="0" Color="Color.Default" Class="mt-8">
+        <MudContainer MaxWidth="MaxWidth.Large">
+            <MudText Typo="Typo.body2" Align="Align.Center" Color="Color.Secondary">
+                © @DateTime.Now.Year My Blog. Built with Blazor CMS. 
+                <MudLink Href="/login" Color="Color.Secondary">Admin</MudLink>
+            </MudText>
+        </MudContainer>
+    </MudAppBar>
+</MudLayout>

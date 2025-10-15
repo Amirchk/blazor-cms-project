@@ -1,0 +1,83 @@
+@page "/blog/categories"
+@layout PublicLayout
+@using CMSProject.Core.Entities
+@using CMSProject.Core.Interfaces
+@inject ICategoryRepository CategoryRepository
+@inject IContentRepository ContentRepository
+@inject NavigationManager Navigation
+
+<PageTitle>Categories - My Blog</PageTitle>
+
+<MudText Typo="Typo.h3" Align="Align.Center" GutterBottom="true">Browse by Category</MudText>
+<MudText Typo="Typo.body1" Align="Align.Center" Color="Color.Secondary" Class="mb-8">
+    Explore articles organized by topics
+</MudText>
+
+@if (loading)
+{
+    <MudProgressCircular Color="Color.Primary" Indeterminate="true" />
+}
+else if (!categories.Any())
+{
+    <MudAlert Severity="Severity.Info">No categories available yet.</MudAlert>
+}
+else
+{
+    <MudGrid>
+        @foreach (var category in categories)
+        {
+            <MudItem xs="12" sm="6" md="4">
+                <MudCard Elevation="2" Class="h-100">
+                    <MudCardContent>
+                        <MudText Typo="Typo.h5" GutterBottom="true">@category.Name</MudText>
+                        
+                        @if (!string.IsNullOrEmpty(category.Description))
+                        {
+                            <MudText Typo="Typo.body2" Color="Color.Secondary" Class="mb-2">
+                                @category.Description
+                            </MudText>
+                        }
+                        
+                        <MudText Typo="Typo.body2" Color="Color.Primary">
+                            @GetArticleCount(category.Id) articles
+                        </MudText>
+                    </MudCardContent>
+                    <MudCardActions>
+                        <MudButton Variant="Variant.Text" Color="Color.Primary" 
+                                   OnClick="@(() => Navigation.NavigateTo($"/blog/category/{category.Slug}"))">
+                            View Articles
+                        </MudButton>
+                    </MudCardActions>
+                </MudCard>
+            </MudItem>
+        }
+    </MudGrid>
+}
+
+@code {
+    private List<Category> categories = new();
+    private List<Content> allArticles = new();
+    private bool loading = true;
+
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadData();
+    }
+
+    private async Task LoadData()
+    {
+        loading = true;
+        var cats = await CategoryRepository.GetAllAsync();
+        categories = cats.Where(c => c.ParentId == null).ToList(); // Root categories only
+        
+        var articles = await ContentRepository.GetPublishedAsync();
+        allArticles = articles.ToList();
+        
+        loading = false;
+    }
+
+    private int GetArticleCount(int categoryId)
+    {
+        return allArticles.Count(a => a.CategoryId == categoryId);
+    }
+}

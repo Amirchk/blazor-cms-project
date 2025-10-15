@@ -1,0 +1,109 @@
+@page "/blog/category/{slug}"
+@layout PublicLayout
+@using CMSProject.Core.Entities
+@using CMSProject.Core.Interfaces
+@inject ICategoryRepository CategoryRepository
+@inject IContentRepository ContentRepository
+@inject NavigationManager Navigation
+
+@if (loading)
+{
+    <MudProgressCircular Color="Color.Primary" Indeterminate="true" />
+}
+else if (category == null)
+{
+    <MudAlert Severity="Severity.Warning">Category not found</MudAlert>
+}
+else
+{
+    <PageTitle>@category.Name - My Blog</PageTitle>
+
+    <MudText Typo="Typo.h3" GutterBottom="true">@category.Name</MudText>
+    
+    @if (!string.IsNullOrEmpty(category.Description))
+    {
+        <MudText Typo="Typo.body1" Color="Color.Secondary" Class="mb-6">
+            @category.Description
+        </MudText>
+    }
+
+    @if (!articles.Any())
+    {
+        <MudAlert Severity="Severity.Info">No articles in this category yet.</MudAlert>
+    }
+    else
+    {
+        <MudGrid>
+            @foreach (var article in articles)
+            {
+                <MudItem xs="12" md="6">
+                    <MudCard Elevation="2" Class="h-100">
+                        <MudCardContent>
+                            <MudText Typo="Typo.h5" GutterBottom="true">@article.Title</MudText>
+                            
+                            <MudText Typo="Typo.body2" Color="Color.Secondary" Class="mb-2">
+                                @article.PublishedDate?.ToString("MMMM dd, yyyy")
+                            </MudText>
+                            
+                            <MudText Typo="Typo.body2">
+                                @(article.Summary ?? GetExcerpt(article.Body))
+                            </MudText>
+                        </MudCardContent>
+                        <MudCardActions>
+                            <MudButton Variant="Variant.Text" Color="Color.Primary" 
+                                       OnClick="@(() => Navigation.NavigateTo($"/blog/{article.Slug}"))">
+                                Read More
+                            </MudButton>
+                        </MudCardActions>
+                    </MudCard>
+                </MudItem>
+            }
+        </MudGrid>
+    }
+
+    <MudButton Variant="Variant.Text" Color="Color.Primary" Href="/blog/categories" 
+               StartIcon="@Icons.Material.Filled.ArrowBack" Class="mt-4">
+        Back to Categories
+    </MudButton>
+}
+
+@code {
+    [Parameter]
+    public string Slug { get; set; } = string.Empty;
+
+    private Category? category;
+    private List<Content> articles = new();
+    private bool loading = true;
+
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadData();
+    }
+
+    private async Task LoadData()
+    {
+        loading = true;
+        
+        var allCategories = await CategoryRepository.GetAllAsync();
+        category = allCategories.FirstOrDefault(c => c.Slug == Slug);
+        
+        if (category != null)
+        {
+            var allContent = await ContentRepository.GetPublishedAsync();
+            articles = allContent.Where(a => a.CategoryId == category.Id)
+                                .OrderByDescending(a => a.PublishedDate)
+                                .ToList();
+        }
+        
+        loading = false;
+    }
+
+    private string GetExcerpt(string body)
+    {
+        if (string.IsNullOrEmpty(body))
+            return "";
+        
+        var text = System.Text.RegularExpressions.Regex.Replace(body, "<.*?>", string.Empty);
+        return text.Length > 150 ? text.Substring(0, 150) + "..." : text;
+    }
+}
